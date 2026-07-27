@@ -1,4 +1,12 @@
+import hashlib
+
 from stratumdgb.logger import logger
+
+
+from .header import HeaderBuilder
+from .coinbase import CoinbaseBuilder
+from .merkle import MerkleTree
+
 
 
 class ShareValidator:
@@ -63,6 +71,58 @@ class ShareValidator:
 
         self.submitted_shares.add(
             share_key
+        )
+
+        coinbase_hash = CoinbaseBuilder.build(
+            job,
+            client.extranonce1,
+            extranonce2
+        )
+
+        logger.info(
+            f"Coinbase hash: {coinbase_hash.hex()}"
+        )
+
+
+        merkle_root = MerkleTree.calculate(
+            coinbase_hash,
+            job.merkle_branches
+        )
+
+        logger.info(
+            f"Merkle root: {merkle_root.hex()}"
+        )
+
+
+        header = HeaderBuilder.build(
+            job,
+            merkle_root,
+            ntime,
+            nonce
+        )
+
+        logger.info(f"Header: {header.hex()}")
+
+
+        header_hash = hashlib.sha256(
+            hashlib.sha256(header).digest()
+        ).digest()
+
+        logger.info(
+            f"Header Hash: {header_hash[::-1].hex()}"
+        )
+
+        hash_int = int.from_bytes(
+            header_hash,
+            byteorder="little"
+        )
+
+        logger.info(
+            f"Hash Integer: {hash_int}"
+        )
+
+        logger.info(
+            "Header hashing completed successfully."
         )
 
 

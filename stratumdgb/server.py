@@ -44,7 +44,7 @@ class StratumServer:
             self.host,
             self.port,
             reuse_address=True,
-            reuse_port=True
+
         )
 
         address = self.server.sockets[0].getsockname()
@@ -109,7 +109,8 @@ class StratumServer:
 
             await client.close()
 
-            self.clients.remove(client)
+            if client in self.clients:
+                self.clients.remove(client)
 
             logger.info(
                 f"Disconnected: {client.address}"
